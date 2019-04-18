@@ -1,0 +1,14 @@
+rule "Init"
+when
+	System started
+then
+	// let openHAB settle and give other rules the chance to fire
+        createTimer(now.plusSeconds(60)) [|
+	//put the off command code you sniffed here 0 is the speed which is "OFF",4 is "cool mode" 
+		Fan_Command.postUpdate("AAA8050XXXXX040055")
+		Fan_Light_Set_Icon.sendCommand(OFF)
+		BY_Spotlight.postupdate(0)
+		BY_Spotlight_prev.postupdate(0)
+		BY_Spotlight_ALEXA.postupdate(OFF)
+]
+end

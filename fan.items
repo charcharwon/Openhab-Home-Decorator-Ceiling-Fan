@@ -1,0 +1,13 @@
+String Fan_Command
+// select fan speed from 0-9
+Number Fan_Speed
+// fan light is push button so using autoupdate false
+Number Fan_Light_Set										 {autoupdate="false"}
+//for alexa to control fan with percent
+Dimmer Fan 	      				"Fan"				[Switchable]
+//for alexa to turn fan on off
+Dimmer Fan_Light 				"Fan Light" 		[Lighting]
+//us alexa to increase and decrease brightness
+Dimmer Fan_Light_Brightness 	"Fan Light Brightness" 		[Lighting]
+//used for alexa to set max brightness
+Dimmer Fan_Light_MAX 			"Fan Light MAX" 		[Lighting]

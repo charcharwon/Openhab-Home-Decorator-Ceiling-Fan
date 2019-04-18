@@ -1,0 +1,258 @@
+ar Timer timer = null
+
+rule "Fan Button Press"
+
+when
+	Item Fan_Speed changed
+	
+then
+	var char[] BinArray = Fan_Command.state.toString.toCharArray
+
+	//breeze mode
+	BinArray.set(13,"4")
+//	Fan_Speed_Icon.sendCommand(ON)
+	switch (Fan_Speed.state as DecimalType){
+	case 0:{BinArray.set(12,"0")
+//			Fan_Speed_Icon.sendCommand(OFF)
+			}
+	case 1:{BinArray.set(12,"1")
+	
+			}
+	case 2:{BinArray.set(12,"2")
+			}
+	case 3:{BinArray.set(12,"3")
+			}
+	case 4:{BinArray.set(12,"4")
+			}
+	case 5:{BinArray.set(12,"5")
+			}
+	case 6:{BinArray.set(12,"6")
+			}
+	case 7:{BinArray.set(12,"7")
+			}
+	case 8:{BinArray.set(12,"8")
+			}
+	case 9:{BinArray.set(12,"9")
+			}
+	}
+
+	
+	var result = BinArray.join("")
+	Fan_Command.postUpdate(result.toString)
+
+
+end
+
+rule "Fan Button Light"
+
+when
+	Item Fan_Light_Set received command
+	
+then
+	var char[] BinArray = Fan_Command.state.toString.toCharArray
+
+	switch (receivedCommand){
+	case 30:{BinArray.set(14,"C")}
+	
+	case 31:{
+			if (Fan_Light_Set_Icon.state == OFF) { Fan_Light.sendCommand(ON) }
+			else { Fan_Light.sendCommand(OFF) }
+			}
+	case 32:{BinArray.set(14,"8")}
+	}
+
+
+	var result = BinArray.join("")
+	val mqttActions = getActions("mqtt","mqtt:broker:mosquitto")
+
+	if (receivedCommand==31){}
+	else{
+		mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+		mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+		mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+		mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+		mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+
+
+	
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw","0")
+	}
+end
+
+
+
+
+
+rule "Fan Command"
+
+when
+	Item Fan_Command received update
+then
+	
+	val mqttActions = getActions("mqtt","mqtt:broker:mosquitto")
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",Fan_Command.state.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw","0")
+end
+
+
+rule "Fan Alexa"
+
+when
+    Item Fan received command 
+then
+	
+//	var char[] BinArray = Fan_Command.state.toString.toCharArray
+//    var int num = Fan_Command.state.toString.charAt(12)	
+	var int target = (receivedCommand as DecimalType).intValue
+	if (target == 0){}
+	else{
+	target=target/11+1
+	}
+	if (target== 10) {target=9}
+	Fan_Speed.postUpdate(target)
+end
+  
+rule "Fan Light Alexa ON"
+
+when
+    Item Fan_Light received command ON
+then
+
+	var char[] BinArray = Fan_Command.state.toString.toCharArray
+	BinArray.set(13,"5")
+	var result = BinArray.join("")
+	val mqttActions = getActions("mqtt","mqtt:broker:mosquitto")
+		
+	if (Fan_Light_Set_Icon.state==OFF)
+	{
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw","0")
+	Fan_Light_Set_Icon.sendCommand(ON)
+	}
+end
+
+rule "Fan Light Alexa OFF"
+
+when
+    Item Fan_Light received command OFF
+then
+
+	var char[] BinArray = Fan_Command.state.toString.toCharArray
+	BinArray.set(13,"5")
+	var result = BinArray.join("")
+	val mqttActions = getActions("mqtt","mqtt:broker:mosquitto")
+	
+	if (Fan_Light_Set_Icon.state==ON)
+	{
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw","0")
+	Fan_Light_Set_Icon.sendCommand(OFF)
+	}
+end
+
+
+
+
+
+rule "Fan Light Brightness Increase Alexa "
+
+when
+    Item Fan_Light_Brightness received command ON
+then
+	//Echo_Dot_TTS.sendCommand(receivedcommand)           
+
+	var char[] BinArray = Fan_Command.state.toString.toCharArray
+	BinArray.set(14,"8")
+	var result = BinArray.join("")
+	val mqttActions = getActions("mqtt","mqtt:broker:mosquitto")
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw","0")
+
+end
+
+rule "Fan Light Brightness Decrease Alexa "
+
+when
+    Item Fan_Light_Brightness received command OFF
+then
+
+	var char[] BinArray = Fan_Command.state.toString.toCharArray
+	BinArray.set(14,"C")
+	var result = BinArray.join("")
+	val mqttActions = getActions("mqtt","mqtt:broker:mosquitto")
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw","0")
+
+end
+
+
+
+rule "Fan Light Brightness MAX Alexa "
+
+when
+    Item Fan_Light_MAX received command ON
+then
+
+	var char[] BinArray = Fan_Command.state.toString.toCharArray
+	BinArray.set(14,"8")
+	var result = BinArray.join("")
+	val mqttActions = getActions("mqtt","mqtt:broker:mosquitto")
+	var counter = 0
+	timer = createTimer(now, [ |
+				if (counter > 7) {
+				mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw","0")	
+				timer = null
+				}
+		else {
+	
+				mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+				mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+				mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+				mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+				mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	
+				counter=counter+1
+				timer.reschedule(now.plusSeconds(1))
+		}
+		])
+
+end
+
+rule "Fan Light Brightness MIN Alexa "
+
+when
+    Item Fan_Light_MAX received command OFF
+then
+
+	var char[] BinArray = Fan_Command.state.toString.toCharArray
+	BinArray.set(14,"C")
+	var result = BinArray.join("")
+	val mqttActions = getActions("mqtt","mqtt:broker:mosquitto")
+	var counter = 0
+	timer = createTimer(now, [ |
+				if (counter > 7) {
+				mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw","0")	
+				timer = null
+				}
+		else {
+	
+				mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+				mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+				mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+				mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+				mqttActions.publishMQTT("cmnd/sonoff-rf/rfraw",result.toString)
+	
+				counter=counter+1
+				timer.reschedule(now.plusSeconds(1))
+		}
+		])
+
+end
